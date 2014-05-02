@@ -1,3 +1,7 @@
+                                                                     
+                                                                     
+                                                                     
+                                             
 #include "ros/ros.h"
 #include <ros/ros.h>
 #include "std_msgs/String.h"
@@ -11,10 +15,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
-
+#include <netdb.h>
 
 void socket_server_listener();
+void socket_client_talker();
 void *thread_socket(void* ptr);
+void *thread_socket2(void* ptr);
 void *thread_move(void* ptr);
 
 #define Fn_STOP 1
@@ -175,6 +181,9 @@ void* thread_move(void* ptr)
 		}
 		else if(socket_reply == Fn_FACECOUNT)
 		{
+			char* message = "a";
+			pthread_t tester;
+
 			//ROS_INFO("REPLY 5");
 			tw.linear.x = 0;
 			tw.linear.y = 0;
@@ -183,7 +192,7 @@ void* thread_move(void* ptr)
 			move_pub.publish(tw);
 			ROS_INFO("Face Count --------------->: %d", faceCount_main);
 
-
+			pthread_create(&tester, NULL, thread_socket2, (void*)message);
 
 		}
 	}
@@ -192,6 +201,46 @@ void* thread_move(void* ptr)
 void* thread_socket(void* ptr)
 {
 	socket_server_listener();
+}
+void* thread_socket2(void* ptr)
+{
+	socket_client_talker();
+}
+void socket_client_talker()
+{
+	int sockfd, portno, n;
+	struct sockaddr_in serv_addr;
+	struct hostent *server;
+
+	portno = port_number +1;
+
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0)
+		ROS_ERROR("ERROR opening socket while sending reply");
+
+    server = gethostbyname("172.15.129.541654654654654651");
+	if(server == NULL)
+		ROS_ERROR("ERROR in IP while sending reply");
+
+
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+	serv_addr.sin_port = htons(portno);
+
+	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+	{
+		ROS_ERROR("ERROR connecting while sending reply");
+	}
+
+	n = write(sockfd,faceCount_msg,strlen(faceCount_msg));
+
+	if(n<0)
+	{
+		ROS_ERROR("ERROR Writing while sending reply");
+	}
+
+	close(sockfd);
 }
 void socket_server_listener(){
 
