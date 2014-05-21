@@ -7,6 +7,7 @@ project(mypackage)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs kobuki_msgs sensor_msgs cv_bridge roscpp std_msgs image_transport)
 find_package( OpenCV REQUIRED )
 find_package( PCL REQUIRED )
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -76,7 +77,10 @@ add_executable(bump src/bump_cpp.cpp)
 add_executable(depth src/depth.cpp)
 add_executable(button src/button_cpp.cpp)
 add_executable(image src/image_cpp.cpp)
-
+add_executable(socket1 src/socket1.cpp)
+add_executable(face src/face_cpp.cpp)
+add_executable(socket2 src/socket2.cpp)
+add_executable(sift src/sift_cpp.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -85,13 +89,22 @@ add_dependencies(bump mypackage_generate_messages_cpp)
 add_dependencies(depth mypackage_generate_messages_cpp)
 add_dependencies(button mypackage_generate_messages_cpp)
 add_dependencies(image mypackage_generate_messages_cpp)
+add_dependencies(socket1 mypackage_generate_messages_cpp)
+add_dependencies(face mypackage_generate_messages_cpp)
+add_dependencies(socket2 mypackage_generate_messages_cpp)
+add_dependencies(sift mypackage_generate_messages_cpp)
+
 ## Specify libraries to link a library or executable target against
 target_link_libraries(move ${catkin_LIBRARIES})
 target_link_libraries(button ${catkin_LIBRARIES})
 target_link_libraries (bump ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} )
 target_link_libraries (depth ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} )
 target_link_libraries (image ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} )
- 
+target_link_libraries (socket1 ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} )
+target_link_libraries (face ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} )
+target_link_libraries (socket2 ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} )
+target_link_libraries (sift ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ) 
+
 #############
 ## Install ##
 #############

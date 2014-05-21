@@ -28,11 +28,15 @@ using namespace std;
 /////////////////////////////////////////////////////////
 
 ros::Publisher pubb;
+ros::Publisher pubb1;
 int bump_n = 5;
 
 std_msgs::String msg1;
 std::stringstream ss;
 
+
+std_msgs::String msg11;
+std::stringstream ss1;
 
 
 static const std::string OPENCV_WINDOW = "Image window";
@@ -79,7 +83,7 @@ public:
     try
     {
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-      cv::imshow(OPENCV_WINDOW, cv_ptr->image);
+      //cv::imshow(OPENCV_WINDOW, cv_ptr->image);
     }
     catch (cv_bridge::Exception& e)
     {
@@ -104,7 +108,8 @@ public:
 void detectAndDisplay( Mat frame )
 {
   ros::NodeHandle nh;
-  pubb = nh.advertise<std_msgs::String>("faceCountMessage", 10);
+  pubb = nh.advertise<std_msgs::String>("facePointsMessage", 10);
+  pubb1 = nh.advertise<std_msgs::String>("faceCountMessage", 10);
   std::vector<Rect> faces;
 
   Mat frame_gray;
@@ -112,19 +117,33 @@ void detectAndDisplay( Mat frame )
   equalizeHist( frame_gray, frame_gray );
 
   String f_c;
-  //-- Detect faces
-  face_cascade.detectMultiScale( frame_gray, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
-  f_c = static_cast<ostringstream*>( &(ostringstream() << faces.size()) )->str();
-  ss << f_c;
- msg1.data = ss.str();
- pubb.publish(msg1);
- ss.str("");
+    //-- Detect faces
+    face_cascade.detectMultiScale( frame_gray, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
+    f_c = static_cast<ostringstream*>( &(ostringstream() << faces.size()) )->str();
+    ss1 << f_c;
+   msg11.data = ss1.str();
+   pubb1.publish(msg11);
+   ss1.str("");
   //for( int i = 1; i <= faces.size(); i++ )
   int i = 0;
-  ROS_INFO("%d ",  faces.size());
+  //ROS_INFO("%d ",  faces.size());
   Point p1( 210, 0 );
    Point p2(210,480);
    line(frame, p1, p2, Scalar( 0, 0, 255 ),2, 8, 0 );
+
+   Point p3( 425, 0 );
+  Point p4(425,480);
+  line(frame, p3, p4, Scalar( 0, 0, 255 ),2, 8, 0 );
+
+  if(faces.size() == 0)
+  {
+	  	 ss << "n";
+		 msg1.data = ss.str();
+
+		 ROS_INFO("%s", msg1.data.c_str());
+		 pubb.publish(msg1);
+		 ss.str("");
+  }
 
   while(faces.size() != 0 && i<faces.size())
   {
@@ -134,6 +153,20 @@ void detectAndDisplay( Mat frame )
   {
 	 ellipse( frame, center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 0, 255, 0 ),4, 8, 0 );
 	 //ROS_INFO("x: %d y: %d",faces[0].x, faces[0].y);
+	 int myx,myy = 0;
+	 string StringY;
+	 string StringX;
+
+	 myx = faces[0].x;
+	 StringX = static_cast<ostringstream*>( &(ostringstream() << myx) )->str();
+	 myy = faces[0].y;
+	 StringY = static_cast<ostringstream*>( &(ostringstream() << myy) )->str();
+
+	 ss << "s "+StringX+" "+StringY;
+	 msg1.data = ss.str();
+	 pubb.publish(msg1);
+	 ss.str("");
+	  ROS_INFO("SINGLE FACE");
   }
 
   else
@@ -141,6 +174,13 @@ void detectAndDisplay( Mat frame )
 	  ellipse( frame, center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 0, 0, 255 ),4, 8, 0 );
 	//  ROS_INFO("%d %d",faces[0].x, faces[0].y);
 	  ROS_INFO("M0RE THAN ONE ");
+	  //ROS_INFO("%d ",  faces.size());
+
+	  ss << "m";
+	  msg1.data = ss.str();
+	  ss.str("");
+	//	 ROS_INFO("%s", msg1.data.c_str());
+   	  pubb.publish(msg1);
 
   }
 
@@ -175,10 +215,12 @@ void detectAndDisplay( Mat frame )
 int main(int argc, char **argv)
 {
 
-	ros::init(argc, argv, "image_node");
+	ros::init(argc, argv, "bump_node");
 	ros::NodeHandle nh;
 	  ROS_INFO("OK");
 	  ImageConverter ic;
+
+	//ros::Subscriber bumper = nh.subscribe("/mobile_base/events/bumper",1, callback);
   ros::spin();
 
   return 0;
